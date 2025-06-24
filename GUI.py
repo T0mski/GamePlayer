@@ -36,6 +36,8 @@ class GameOverlay:
         # Wait until two Ctrl+Clicks are detected (you can implement this via keyboard/mouse hooks)
         pass  # Placeholder for actual region detection logic
 
+    def quit(self):
+        self.root.destroy()
 
 
 ctrlPressed = False

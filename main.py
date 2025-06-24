@@ -2,10 +2,10 @@ import pyautogui as gui
 import time
 from pynput import keyboard as kb
 import threading as th
+from GUI import GameOverlay
+
 
 running = True
-def quit():
-    return False
 
 def Update():
     mousePos = gui.position()
@@ -18,6 +18,7 @@ def listen_for_exit():
         if key == kb.Key.esc:
             print("Escape pressed. Stopping...")
             running = False
+            GameOverlay.quit()
             return False
 
 
@@ -27,7 +28,7 @@ def listen_for_exit():
 if __name__ == "__main__":
     listenerThread = th.Thread(target=listen_for_exit)
     listenerThread.start()
-
+    GameOverlay.__init__(root)
     while running:
         Update()
         time.sleep(0.2)
