@@ -9,31 +9,45 @@ import tkinter as tk
 running = True
 TopLeft = ()
 BottomRight = ()
+Parameters = {
+    "TopLeft": (),
+    "BottomRight": (),
+    "Width": 0,
+    "Height": 0
+}
 
 def Update():
-    print("")
     time.sleep(0.5)
 
 def listener():
     def on_press(key):
         global running
         global pressed
-        global TopLeft
-        global BottomRight
+        global Parameters
         if key == kb.Key.esc:
             print("Escape pressed. Stopping...")
             running = False
             return False
         if key == kb.Key.ctrl_l:
             print("Storing first")
-            TopLeft = gui.position()
+            Parameters["TopLeft"] = gui.position()
 
         if key == kb.Key.alt_l:
             print("Storing second")
-            BottomRight = gui.position()
+            Parameters["BottomRight"] = gui.position()
+        if key == kb.Key.enter:
+            TopLeft = Parameters["TopLeft"]
+            BottomRight = Parameters["BottomRight"]
+            width = BottomRight.x - TopLeft.x
+            Parameters["Width"] = width
+            height = BottomRight.y - TopLeft.y
+            Parameters["Height"] = height
+            print("Calculating...")
+            print(f"Width: {width} Height: {height}")
 
     with kb.Listener(on_press=on_press) as listener:
         listener.join()
+
 
 
 
@@ -54,4 +68,4 @@ if __name__ == "__main__":
     while running:
         Update()
     print("Program Exited")
-    print(f"Top-Left Coords: {TopLeft}, Bottom-Right Coords: {BottomRight}")
+    print(f"Top-Left Coords: {Parameters["TopLeft"]}, Bottom-Right Coords: {Parameters["BottomRight"]}")
