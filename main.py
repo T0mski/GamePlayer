@@ -2,16 +2,17 @@
 import pyautogui as gui
 import os
 import time
-from mouseinfo import screenshot
 from pynput import keyboard as kb
 import threading as th
-from GUI import GameOverlay
 import tkinter as tk
+from GUI import GameOverlay
 import mss
 import mss.tools
 from PIL import Image
+import cv2
+import easyocr as ocr
 import numpy as np
-
+import torch
 # Declaring Global Variables.
 running = True
 TopLeft = ()
@@ -21,14 +22,33 @@ Parameters = {
     "BottomRight": (),
     "Width": 0.0,
     "Height": 0.0,
-    "Calculated": False
-
+    "Calculated": False,
+    "Saved": False
 }
+gridCellWidth = 48
+gridCellHeight = 48
+gridWidth = 10
+gridHeight = 8
+
+grid = np.array([
+    ["H","H","H","H","H","H","H","H","H","H"],
+    ["H","H","H","H","H","H","H","H","H","H"],
+    ["H","H","H","H","H","H","H","H","H","H"],
+    ["H","H","H","H","H","H","H","H","H","H"],
+    ["H","H","H","H","H","H","H","H","H","H"],
+    ["H","H","H","H","H","H","H","H","H","H"],
+    ["H","H","H","H","H","H","H","H","H","H"],
+    ["H","H","H","H","H","H","H","H","H","H"]
+])
+
+
 
 # Update function that allows the Program to run constanly.
 def Update():
-    captureWindow()
+    img = captureWindow()
+    analyseImg()
     time.sleep(0.5)
+
 
 
 # function that is called on the Keyboard Listener Thread of the program.
@@ -71,6 +91,8 @@ def loadWidget_Thread():
 
     createWindow()
 
+
+
 # Function that captures the game window based on the saved coords.
 def captureWindow():
     global Parameters
@@ -92,7 +114,23 @@ def captureWindow():
         img = Image.frombytes("RGB", screenshot.size, screenshot.rgb)
 
     img.save(path)
+    Parameters["Saved"] = True
     print("Image Saved")
+
+
+def analyseImg():
+    if not Parameters["Saved"]: return
+
+    img = "D:\^ Code\Python\GamePlayer\GamePlayer\GameImages\img.png"
+    text = reader.readtext(img)
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
@@ -114,6 +152,9 @@ if __name__ == "__main__":
     os.makedirs("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", exist_ok=True)
     # Loop allowing for continuous program running (Main Thread).
     # Makes sure that all other processes are complete before exiting the program.
+
+    reader = ocr.Reader(["en"], gpu=True)
+    print(torch.cuda.is_available())
 
     while running:
         Update()
