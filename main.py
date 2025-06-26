@@ -1,7 +1,7 @@
+# Importing Libraries.
 import pyautogui as gui
 import os
 import time
-
 from mouseinfo import screenshot
 from pynput import keyboard as kb
 import threading as th
@@ -12,7 +12,7 @@ import mss.tools
 from PIL import Image
 import numpy as np
 
-
+# Declaring Global Variables.
 running = True
 TopLeft = ()
 BottomRight = ()
@@ -25,13 +25,13 @@ Parameters = {
 
 }
 
-
+# Update function that allows the Program to run constanly.
 def Update():
     captureWindow()
     time.sleep(0.5)
 
 
-
+# function that is called on the Keyboard Listener Thread of the program.
 def listener_Thread():
     def on_press(key):
         global running
@@ -42,10 +42,10 @@ def listener_Thread():
             running = False
             return False
         if key == kb.Key.ctrl_l:
-            print("Storing first")
+            print("Storing TopLeft")
             Parameters["TopLeft"] = gui.position()
         if key == kb.Key.alt_l:
-            print("Storing second")
+            print("Storing BottomRight")
             Parameters["BottomRight"] = gui.position()
         if key == kb.Key.enter:
             TopLeft = Parameters["TopLeft"]
@@ -56,14 +56,12 @@ def listener_Thread():
             Parameters["Height"] = height
             Parameters["Calculated"] = True
             print("Calculating...")
-            print(f"Width: {width} Height: {height}")
-
     with kb.Listener(on_press=on_press) as listener:
         listener.join()
 
 
 
-
+# function that is called on the Load widget Thread of the program.
 def loadWidget_Thread():
     def createWindow():
         root = tk.Tk()
@@ -73,6 +71,7 @@ def loadWidget_Thread():
 
     createWindow()
 
+# Function that captures the game window based on the saved coords.
 def captureWindow():
     global Parameters
 
@@ -97,14 +96,25 @@ def captureWindow():
 
 
 if __name__ == "__main__":
+
+    # Initilaising new thread called listenerTread to allow
+    # for keyboard interactions whilst running other functions.
     listenerThread = th.Thread(target=listener_Thread, daemon=True)
     listenerThread.start()
+
+    # Initilaising new thread called windowThread to allow
+    # for the widget to be initialised and do its own process
+    # whilst the main thread is carrying out other function.
     windowThread = th.Thread(target=loadWidget_Thread, daemon=True)
     windowThread.start()
+
+    # Making sure that the GameImages dir exists in the file structure
+    # if it doesn't make a new dir.
+
     os.makedirs("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", exist_ok=True)
+    # Loop allowing for continuous program running (Main Thread).
+    # Makes sure that all other processes are complete before exiting the program.
+
     while running:
         Update()
     print("Program Exited")
-    print(f"Top-Left Coords: {Parameters["TopLeft"]}, Bottom-Right Coords: {Parameters["BottomRight"]}")
-
-
