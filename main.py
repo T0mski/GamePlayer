@@ -18,8 +18,9 @@ running = True
 TopLeft = ()
 BottomRight = ()
 Parameters = {
-    "TopLeft": (),
-    "BottomRight": (),
+    "TopLeft": (1339, 410 ),
+    "BottomRight": (1833, 807),
+
     "Width": 0.0,
     "Height": 0.0,
     "Calculated": False,
@@ -30,23 +31,17 @@ gridCellHeight = 48
 gridWidth = 10
 gridHeight = 8
 
-grid = np.array([
-    ["H","H","H","H","H","H","H","H","H","H"],
-    ["H","H","H","H","H","H","H","H","H","H"],
-    ["H","H","H","H","H","H","H","H","H","H"],
-    ["H","H","H","H","H","H","H","H","H","H"],
-    ["H","H","H","H","H","H","H","H","H","H"],
-    ["H","H","H","H","H","H","H","H","H","H"],
-    ["H","H","H","H","H","H","H","H","H","H"],
-    ["H","H","H","H","H","H","H","H","H","H"]
-])
+
 
 
 
 # Update function that allows the Program to run constanly.
 def Update():
     img = captureWindow()
-    analyseImg()
+    newGrid = analyseImg()
+    if newGrid != None:
+        for r in newGrid:
+            print(r)
     time.sleep(0.5)
 
 
@@ -70,9 +65,9 @@ def listener_Thread():
         if key == kb.Key.enter:
             TopLeft = Parameters["TopLeft"]
             BottomRight = Parameters["BottomRight"]
-            width = BottomRight.x - TopLeft.x
+            width = BottomRight[0] - TopLeft[0]
             Parameters["Width"] = width
-            height = BottomRight.y - TopLeft.y
+            height = BottomRight[1] - TopLeft[1]
             Parameters["Height"] = height
             Parameters["Calculated"] = True
             print("Calculating...")
@@ -82,14 +77,14 @@ def listener_Thread():
 
 
 # function that is called on the Load widget Thread of the program.
-def loadWidget_Thread():
-    def createWindow():
-        root = tk.Tk()
-        app = GameOverlay(root)
-        root.mainloop()
+#def loadWidget_Thread():
+#    def createWindow():
+#        root = tk.Tk()
+#        app = GameOverlay(root)
+#           root.mainloop()
 
 
-    createWindow()
+    #createWindow()
 
 
 
@@ -121,30 +116,58 @@ def captureWindow():
 def analyseImg():
     if not Parameters["Saved"]: return
 
-    img = "D:\^ Code\Python\GamePlayer\GamePlayer\GameImages\img.png"
-    text = reader.readtext(img)
+    readpath  = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages\img.png")
+    img = cv2.imread(readpath)
+    grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    savepath = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", "Greyscale.png")
+    greySave = Image.fromarray(grey)
+    greySave.save(savepath)
+    _, binary = cv2.threshold(grey, 128, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    ROWS, COLS = 8, 10
+    height, width = binary.shape
+    cell_h , cell_w = height // ROWS, width // COLS
+    reader = ocr.Reader(["en"])
 
 
+    result = []
+
+    for i in range(ROWS):
+        row = []
+        for j in range(COLS):
+            y1, y2 = i * cell_h, (i + 1) * cell_h
+            x1, x2 = j * cell_w, (j + 1) * cell_w
+            cell_img = binary[y1:y2, x1:x2]
+            ocr_result = reader.readtext(cell_img)
+            if ocr_result != []:
+                text = ocr_result[0][1]
+                if text.isdigit():
+                    row.append(text)
+                else:
+                    print(f"Error: Value is a {text} at {i,j}")
 
 
+            else:
 
-
-
+                row.append("H")
+        result.append(row)
+    print(result)
 
 
 
 if __name__ == "__main__":
+
 
     # Initilaising new thread called listenerTread to allow
     # for keyboard interactions whilst running other functions.
     listenerThread = th.Thread(target=listener_Thread, daemon=True)
     listenerThread.start()
 
-    # Initilaising new thread called windowThread to allow
-    # for the widget to be initialised and do its own process
-    # whilst the main thread is carrying out other function.
-    windowThread = th.Thread(target=loadWidget_Thread, daemon=True)
-    windowThread.start()
+    ## Initilaising new thread called windowThread to allow
+    ## for the widget to be initialised and do its own process
+    ## whilst the main thread is carrying out other function.
+    #windowThread = th.Thread(target=loadWidget_Thread, daemon=True)
+    #windowThread.start()
 
     # Making sure that the GameImages dir exists in the file structure
     # if it doesn't make a new dir.
@@ -153,9 +176,7 @@ if __name__ == "__main__":
     # Loop allowing for continuous program running (Main Thread).
     # Makes sure that all other processes are complete before exiting the program.
 
-    reader = ocr.Reader(["en"], gpu=True)
-    print(torch.cuda.is_available())
-
     while running:
         Update()
+
     print("Program Exited")
