@@ -5,9 +5,7 @@ import time
 from pynput import keyboard as kb
 import threading as th
 import tkinter as tk
-
-from sympy.integrals.prde import parametric_log_deriv_heu
-
+from MineSweeper import MineSweeperImageProcessing
 from GUI import GameOverlay
 import mss
 import mss.tools
@@ -39,8 +37,7 @@ TempVariable = False
 
 # Update function that allows the Program to run constanly.
 def Update():
-    img = captureWindow()
-    newGrid = analyseImg()
+    newGrid = captureWindow()
     if newGrid != None:
         for r in newGrid:
             print(r)
@@ -106,79 +103,15 @@ def captureWindow():
         "height": Parameters["Height"]
     }
 
-    path = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", "img.png")
+    path = os.path.join("D:\\^ Code\\Python\\GamePlayer\\GamePlayer\\GameImages", "GameImg.png")
     with mss.mss() as sct:
         screenshot = sct.grab(window)
-        img = Image.frombytes("RGB", screenshot.size, screenshot.rgb)
+        GameImg = Image.frombytes("RGB", screenshot.size, screenshot.rgb)
 
-    img.save(path)
-    Parameters["Saved"] = True
+    GameImg.save(path)
+    newGrid = MineSweeperImageProcessing.analyseImg()
     print("Image Saved")
-
-
-def analyseImg():
-    if not Parameters["Saved"]: return
-
-
-    readpath  = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages\img.png")
-    img = cv2.imread(readpath)
-
-    grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    savepath = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", "Greyscale.png")
-    Image.fromarray(grey).save(savepath)
-
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
-
-
-
-    _, binary = cv2.threshold(grey, 128, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
-    binarySavePath = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", "Binary.png")
-    Image.fromarray(binary).save(binarySavePath)
-
-    ROWS, COLS = 8, 10
-    height, width = binary.shape
-    cell_h , cell_w = height // ROWS, width // COLS
-    reader = ocr.Reader(["en"])
-    pad_h = int(cell_h * 0.12)
-    pad_w = int(cell_w * 0.2)
-
-
-    result = []
-    for i in range(ROWS):
-        row = []
-        for j in range(COLS):
-            y1, y2 = i * cell_h + pad_h, (i + 1) * cell_h - pad_h
-            x1, x2 = j * cell_w + pad_w, (j + 1) * cell_w - pad_w
-            cell_img = binary[y1:y2, x1:x2]
-            ocr_result = reader.readtext(cell_img, allowlist="01234568")
-            DebugImg = Image.fromarray(cell_img)
-            DebugSave(DebugImg,i,j)
-            if ocr_result != []:
-                text = ocr_result[0][1]
-                if text.isdigit():
-                    if   int(text) < 9:
-                        row.append(text)
-                    else:
-                        print(f"Error: Value Too Large . Value: {text}, Location: {i, j},")
-                        exit(1)
-                else:
-                    print(f"Error: Invalid Value or Confidence too low. Value: {text}, Location: {i,j},")
-                    DebugPath = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", "Debug.png")
-                    cellImg = Image.fromarray(cell_img)
-                    cellImg.save(DebugPath)
-                    exit(1)
-            else:
-                row.append("H")
-
-        result.append(row)
-    return result
-
-def DebugSave(image, indexI, indexJ):
-    filename = f"{indexI}{indexJ}.png"
-    path = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages\DebugFolder", filename)
-
-    image.save(path)
+    return newGrid
 
 
 if __name__ == "__main__":
@@ -199,7 +132,7 @@ if __name__ == "__main__":
     # Making sure that the GameImages dir exists in the file structure
     # if it doesn't make a new dir.
 
-    os.makedirs("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", exist_ok=True)
+    os.makedirs("D:\\^ Code\\Python\\GamePlayer\\GamePlayer\\GameImages", exist_ok=True)
     # Loop allowing for continuous program running (Main Thread).
     # Makes sure that all other processes are complete before exiting the program.
 
