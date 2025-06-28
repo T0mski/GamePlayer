@@ -5,6 +5,9 @@ import time
 from pynput import keyboard as kb
 import threading as th
 import tkinter as tk
+
+from sympy.integrals.prde import parametric_log_deriv_heu
+
 from GUI import GameOverlay
 import mss
 import mss.tools
@@ -116,57 +119,60 @@ def captureWindow():
 def analyseImg():
     if not Parameters["Saved"]: return
 
+
     readpath  = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages\img.png")
     img = cv2.imread(readpath)
+
     grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     savepath = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", "Greyscale.png")
-    greySave = Image.fromarray(grey)
-    greySave.save(savepath)
+    Image.fromarray(grey).save(savepath)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+
+
+
     _, binary = cv2.threshold(grey, 128, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    binaryImage = Image.fromarray(binary)
+    binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
     binarySavePath = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", "Binary.png")
-    binaryImage.save(binarySavePath)
+    Image.fromarray(binary).save(binarySavePath)
+
     ROWS, COLS = 8, 10
     height, width = binary.shape
     cell_h , cell_w = height // ROWS, width // COLS
     reader = ocr.Reader(["en"])
+    pad_h = int(cell_h * 0.12)
+    pad_w = int(cell_w * 0.2)
 
 
     result = []
     for i in range(ROWS):
         row = []
         for j in range(COLS):
-            y1, y2 = i * cell_h, (i + 1) * cell_h
-            x1, x2 = j * cell_w, (j + 1) * cell_w
+            y1, y2 = i * cell_h + pad_h, (i + 1) * cell_h - pad_h
+            x1, x2 = j * cell_w + pad_w, (j + 1) * cell_w - pad_w
             cell_img = binary[y1:y2, x1:x2]
-            ocr_result = reader.readtext(cell_img)
+            ocr_result = reader.readtext(cell_img, allowlist="01234568")
             DebugImg = Image.fromarray(cell_img)
             DebugSave(DebugImg,i,j)
             if ocr_result != []:
                 text = ocr_result[0][1]
-                if text.isdigit() and int(text) < 9:
-                    row.append(text)
-                elif int(text) > 8:
-                    print(f"Error: Value Too Large. Value: {text}, Location: {i, j},")
-                    exit(1)
+                if text.isdigit():
+                    if   int(text) < 9:
+                        row.append(text)
+                    else:
+                        print(f"Error: Value Too Large . Value: {text}, Location: {i, j},")
+                        exit(1)
                 else:
-                    print(f"Error: Value Not Recognised. Value: {text}, Location: {i,j},")
+                    print(f"Error: Invalid Value or Confidence too low. Value: {text}, Location: {i,j},")
                     DebugPath = os.path.join("D:\^ Code\Python\GamePlayer\GamePlayer\GameImages", "Debug.png")
                     cellImg = Image.fromarray(cell_img)
                     cellImg.save(DebugPath)
                     exit(1)
-            elif ocr_result == []:
-                row.append("H")
             else:
-                print(f"Error: Value Not Recognised. Value: {text}, Location: {i,j},")
-                exit(1)
+                row.append("H")
+
         result.append(row)
-
-
-
-
-
-    print(result)
+    return result
 
 def DebugSave(image, indexI, indexJ):
     filename = f"{indexI}{indexJ}.png"
