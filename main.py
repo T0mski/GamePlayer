@@ -77,14 +77,14 @@ def listener_Thread():
 
 
 # function that is called on the Load widget Thread of the program.
-#def loadWidget_Thread():
-#    def createWindow():
-#        root = tk.Tk()
-#        app = GameOverlay(root)
-#        root.mainloop()
+def loadWidget_Thread():
+    def createWindow():
+        root = tk.Tk()
+        app = GameOverlay(root)
+        root.mainloop()
 
 
-#    createWindow()
+    createWindow()
 
 
 
@@ -122,12 +122,12 @@ if __name__ == "__main__":
     listenerThread = th.Thread(target=listener_Thread, daemon=True)
     listenerThread.start()
 
-    ## Initilaising new thread called windowThread to allow
-    ## for the widget to be initialised and do its own process
-    ## whilst the main thread is carrying out other function.
-    ##
-    #windowThread = th.Thread(target=loadWidget_Thread, daemon=True)
-    #windowThread.start()
+    # Initilaising new thread called windowThread to allow
+    # for the widget to be initialised and do its own process
+    # whilst the main thread is carrying out other function.
+    #
+    windowThread = th.Thread(target=loadWidget_Thread, daemon=True)
+    windowThread.start()
 
     # Making sure that the GameImages dir exists in the file structure
     # if it doesn't make a new dir.
