@@ -1,17 +1,29 @@
 import os
+import time
+
 import mss
 import mss.tools
+import pyautogui as gui
 from PIL import Image
 import cv2
 import easyocr as ocr
 import numpy as np
 import torch
+import pprint
 
-
+TILESIZE = 48
+Parameters = {
+    "TopLeft": (1414, 426),
+    "BottomRight": (1863, 785),
+    "Width": 0.0,
+    "Height": 0.0,
+    "Calculated": False,
+    "Saved": False
+}
 class MineSweeperImageProcessing:
     def analyseImg():
-        readpath  = os.path.join("D:\\^ Code\\Python\\GamePlayer\\GamePlayer\\GameImages", "GameImg.png")
-
+        readpath  = os.path.join("D:\Coding Projects\GamePlayer\GameImages", "GameImg.png")
+        img = cv2.imread(readpath)
         grey = cv2.cvtColor(cv2.imread(readpath), cv2.COLOR_BGR2GRAY)
 
 
@@ -25,8 +37,6 @@ class MineSweeperImageProcessing:
         height, width = binary.shape
         cell_h , cell_w = height // ROWS, width // COLS
         reader = ocr.Reader(["en"])
-
-
 
         result = []
         for i in range(ROWS):
@@ -45,7 +55,7 @@ class MineSweeperImageProcessing:
                 ocr_result = reader.readtext(cell_img, allowlist="01234568")
 
                 DebugImg = Image.fromarray(cell_img)
-                DebugSave(DebugImg,i,j)
+                DebugTools.DebugSave(image=DebugImg,indexI=i,indexJ=j)
                 if ocr_result != []:
                     text = ocr_result[0][1]
                     if text.isdigit():
@@ -58,19 +68,108 @@ class MineSweeperImageProcessing:
                         print(f"Error: Invalid Value. Value: {text}, Location: {i,j},")
                         exit(1)
                 else:
-                    row.append("H")
+                    w, h = img.shape[:2]
+                    centre = [int(w/2), int(h/2)]
+                    r,g,b = img[centre]
+                    temp = Image.fromarray(temp)
+                    DebugTools.DebugSave(image=temp,fileName="Temp.png")
+                    r = int(r)
+                    g = int(g)
+                    b = int(b)
+                    print(f"Red: {r} Green: {g} Blue: {b}")
+                    if (r,g,b) == (81,215,170):
+                        row.append("H")
+                    else:
+                        row.append("O")
 
             result.append(row)
         return result
 
 
+class DebugTools:
+    def DebugSave(image, indexI=None, indexJ=None, fileName=None):
+        if fileName != None:
+            filename = fileName
+            path = os.path.join("D:\Coding Projects\GamePlayer\GameImages\DebugFolder", filename)
+            image.save(path)
 
-def DebugSave(image, indexI, indexJ):
-    filename = f"{indexI}{indexJ}.png"
-    path = os.path.join("D:\\^ Code\\Python\\GamePlayer\\GamePlayer\\GameImages\\DebugFolder", filename)
-
-    image.save(path)
-
+        else:
+            filename = f"{indexI}{indexJ}.png"
+            path = os.path.join("D:\Coding Projects\GamePlayer\GameImages\DebugFolder", filename)
+            image.save(path)
 
 
+DIRECTIONS = [(-1,-1),(-1,0),(-1, 1),
+              ( 0,-1),       ( 0, 1),
+              ( 1,-1),( 1,0),( 1, 1)]
 
+
+class MineSweeperSolver:
+    def LeftClick(TopLeft, x, y):
+        gui.click(TopLeft[0] + y * TILESIZE, TopLeft[1] + x * TILESIZE, button="left")
+
+    def RightClick(TopLeft, x, y):
+        gui.click(TopLeft[0] + y * TILESIZE, TopLeft[1] + x * TILESIZE, button="right")
+
+    def GetNeighbours(x, y, width, height):
+        for dx, dy in DIRECTIONS:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < height and 0 <= ny < width:
+                yield nx, ny
+
+    def Solve(currentBoard):
+        height = len(currentBoard)
+        width = len(currentBoard[0])
+        changed = True
+
+        while changed:
+            changed = False
+            for x in range(height):
+                for y in range(width):
+                    try:
+                        val = int(currentBoard[x][y])
+                        if val in range(1, 9):
+                            neighbors = list(MineSweeperSolver.GetNeighbours(x, y, width, height))
+
+                            unopened = [(nx, ny) for nx, ny in neighbors if currentBoard[nx][ny] == "H"]
+                            flagged = [(nx, ny) for nx, ny in neighbors if currentBoard[nx][ny] == "F"]
+
+                            print(f"[{x}, {y}] → Val: {val} | Unopened: {unopened} | Flagged: {flagged}")
+
+                            # Flagging logic
+                            if len(unopened) > 0 and val - len(flagged) == len(unopened):
+                                print("Flagging:")
+                                for nx, ny in unopened:
+                                    if currentBoard[nx][ny] != "F":
+                                        currentBoard[nx][ny] = "F"
+                                        MineSweeperSolver.RightClick(Parameters["TopLeft"], nx, ny)
+                                        changed = True
+
+                            # Opening logic
+                            if val == len(flagged) and len(unopened) > 0:
+                                print("Opening:")
+                                for nx, ny in unopened:
+                                    if currentBoard[nx][ny] == "H":
+                                        currentBoard[nx][ny] = "0"  # Marked as opened
+                                        MineSweeperSolver.LeftClick(Parameters["TopLeft"], nx, ny)
+                                        changed = True
+
+                    except ValueError:
+                        continue
+                    except Exception as e:
+                        print(f"There was a {type(e).__name__} error: {e}")
+
+
+board = [
+    ['H', 'H', 'H', 'H', 'H', 'H', 'H', '1', 'H', 'H'],
+    ['H', 'H', 'H', 'H', 'H', 'H', 'H', '1', '2', 'H'],
+    ['H', 'H', '1', '1', '1', 'H', 'H', 'H', '1', 'H'],
+    ['H', 'H', '1', 'H', '1', 'H', 'H', 'H', '1', 'H'],
+    ['1', '1', '1', '1', '1', 'H', 'H', '1', '1', 'H'],
+    ['H', 'H', 'H', '1', 'H', 'H', '1', '2', 'H', 'H'],
+    ['H', 'H', 'H', '1', 'H', 'H', '1', 'H', 'H', 'H'],
+    ['H', 'H', 'H', '1', 'H', 'H', '1', 'H', 'H', 'H']
+]
+
+
+#MineSweeperSolver.Solve(currentBoard=board)

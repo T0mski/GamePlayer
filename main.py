@@ -10,17 +10,13 @@ from GUI import GameOverlay
 import mss
 import mss.tools
 from PIL import Image
-import cv2
-import easyocr as ocr
-import numpy as np
-import torch
+import pprint
+
 # Declaring Global Variables.
 running = True
-TopLeft = ()
-BottomRight = ()
 Parameters = {
-    "TopLeft": (1351, 426),
-    "BottomRight": (1797, 786),
+    "TopLeft": (1414, 426),
+    "BottomRight": (1863, 785),
     "Width": 0.0,
     "Height": 0.0,
     "Calculated": False,
@@ -35,12 +31,11 @@ TempVariable = False
 
 
 
-# Update function that allows the Program to run constanly.
+# Update function that allows the Program to run constantly.
 def Update():
     newGrid = captureWindow()
-    if newGrid != None:
-        for r in newGrid:
-            print(r)
+    if newGrid is not None:
+        pprint.pp(newGrid)
     time.sleep(0.5)
 
 
@@ -49,7 +44,6 @@ def Update():
 def listener_Thread():
     def on_press(key):
         global running
-        global pressed
         global Parameters
         if key == kb.Key.esc:
             print("Escape pressed. Stopping...")
@@ -80,7 +74,7 @@ def listener_Thread():
 def loadWidget_Thread():
     def createWindow():
         root = tk.Tk()
-        app = GameOverlay(root)
+        GameOverlay(root)
         root.mainloop()
 
 
@@ -88,7 +82,7 @@ def loadWidget_Thread():
 
 
 
-# Function that captures the game window based on the saved coords.
+# Function that captures the game window based on the saved cords.
 def captureWindow():
     global Parameters
 
@@ -103,7 +97,7 @@ def captureWindow():
         "height": Parameters["Height"]
     }
 
-    path = os.path.join("D:\\^ Code\\Python\\GamePlayer\\GamePlayer\\GameImages", "GameImg.png")
+    path = os.path.join("D:\Coding Projects\GamePlayer\GameImages", "GameImg.png")
     with mss.mss() as sct:
         screenshot = sct.grab(window)
         GameImg = Image.frombytes("RGB", screenshot.size, screenshot.rgb)
@@ -117,22 +111,18 @@ def captureWindow():
 if __name__ == "__main__":
 
 
-    # Initilaising new thread called listenerTread to allow
+    # Initialising new thread called listenerTread to allow
     # for keyboard interactions whilst running other functions.
     listenerThread = th.Thread(target=listener_Thread, daemon=True)
     listenerThread.start()
 
-    # Initilaising new thread called windowThread to allow
+    # Initialising new thread called windowThread to allow
     # for the widget to be initialised and do its own process
     # whilst the main thread is carrying out other function.
     #
     windowThread = th.Thread(target=loadWidget_Thread, daemon=True)
     windowThread.start()
 
-    # Making sure that the GameImages dir exists in the file structure
-    # if it doesn't make a new dir.
-
-    os.makedirs("D:\\^ Code\\Python\\GamePlayer\\GamePlayer\\GameImages", exist_ok=True)
     # Loop allowing for continuous program running (Main Thread).
     # Makes sure that all other processes are complete before exiting the program.
 
