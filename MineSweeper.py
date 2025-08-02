@@ -13,8 +13,8 @@ import pprint
 
 TILESIZE = 48
 Parameters = {
-    "TopLeft": (1414, 426),
-    "BottomRight": (1863, 785),
+    "TopLeft": (1402, 422),
+    "BottomRight": (1853, 783),
     "Width": 0.0,
     "Height": 0.0,
     "Calculated": False,
@@ -64,26 +64,23 @@ class MineSweeperImageProcessing:
                         else:
                             print(f"Error: Value Too Large . Value: {text}, Location: {i, j},")
                             exit(1)
+                    elif text == ",":
+                        continue
                     else:
                         print(f"Error: Invalid Value. Value: {text}, Location: {i,j},")
                         exit(1)
                 else:
-                    w, h = img.shape[:2]
-                    centre = [int(w/2), int(h/2)]
-                    r,g,b = img[centre]
-                    temp = Image.fromarray(temp)
-                    DebugTools.DebugSave(image=temp,fileName="Temp.png")
-                    r = int(r)
-                    g = int(g)
-                    b = int(b)
-                    print(f"Red: {r} Green: {g} Blue: {b}")
-                    if (r,g,b) == (81,215,170):
+                    currentCell =  img[y1:y2, x1:x2]
+                    w, h = currentCell.shape[:2]
+                    centre = currentCell[h//2, w//2]
+                    if (centre == np.array([81,215,170])).all() or (centre == np.array([73,209,162])).all() :
                         row.append("H")
                     else:
                         row.append("O")
 
             result.append(row)
         return result
+
 
 
 class DebugTools:
@@ -138,7 +135,6 @@ class MineSweeperSolver:
 
                             # Flagging logic
                             if len(unopened) > 0 and val - len(flagged) == len(unopened):
-                                print("Flagging:")
                                 for nx, ny in unopened:
                                     if currentBoard[nx][ny] != "F":
                                         currentBoard[nx][ny] = "F"
@@ -146,8 +142,7 @@ class MineSweeperSolver:
                                         changed = True
 
                             # Opening logic
-                            if val == len(flagged) and len(unopened) > 0:
-                                print("Opening:")
+                            if val < len(flagged) and len(unopened) > 0:
                                 for nx, ny in unopened:
                                     if currentBoard[nx][ny] == "H":
                                         currentBoard[nx][ny] = "0"  # Marked as opened
@@ -160,16 +155,4 @@ class MineSweeperSolver:
                         print(f"There was a {type(e).__name__} error: {e}")
 
 
-board = [
-    ['H', 'H', 'H', 'H', 'H', 'H', 'H', '1', 'H', 'H'],
-    ['H', 'H', 'H', 'H', 'H', 'H', 'H', '1', '2', 'H'],
-    ['H', 'H', '1', '1', '1', 'H', 'H', 'H', '1', 'H'],
-    ['H', 'H', '1', 'H', '1', 'H', 'H', 'H', '1', 'H'],
-    ['1', '1', '1', '1', '1', 'H', 'H', '1', '1', 'H'],
-    ['H', 'H', 'H', '1', 'H', 'H', '1', '2', 'H', 'H'],
-    ['H', 'H', 'H', '1', 'H', 'H', '1', 'H', 'H', 'H'],
-    ['H', 'H', 'H', '1', 'H', 'H', '1', 'H', 'H', 'H']
-]
 
-
-#MineSweeperSolver.Solve(currentBoard=board)

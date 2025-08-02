@@ -5,7 +5,7 @@ import time
 from pynput import keyboard as kb
 import threading as th
 import tkinter as tk
-from MineSweeper import MineSweeperImageProcessing
+import MineSweeper
 from GUI import GameOverlay
 import mss
 import mss.tools
@@ -15,8 +15,8 @@ import pprint
 # Declaring Global Variables.
 running = True
 Parameters = {
-    "TopLeft": (1414, 426),
-    "BottomRight": (1863, 785),
+    "TopLeft": (1402, 422),
+    "BottomRight": (1853, 783),
     "Width": 0.0,
     "Height": 0.0,
     "Calculated": False,
@@ -36,6 +36,7 @@ def Update():
     newGrid = captureWindow()
     if newGrid is not None:
         pprint.pp(newGrid)
+        MineSweeper.MineSweeperSolver.Solve(newGrid)
     time.sleep(0.5)
 
 
@@ -103,7 +104,7 @@ def captureWindow():
         GameImg = Image.frombytes("RGB", screenshot.size, screenshot.rgb)
 
     GameImg.save(path)
-    newGrid = MineSweeperImageProcessing.analyseImg()
+    newGrid = MineSweeper.MineSweeperImageProcessing.analyseImg()
     print("Image Saved")
     return newGrid
 
