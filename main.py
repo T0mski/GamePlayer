@@ -30,10 +30,11 @@ gridHeight = 8
 TempVariable = False
 
 
-
+# Start function that
+def Start():
+    return captureWindow()
 # Update function that allows the Program to run constantly.
-def Update():
-    newGrid = captureWindow()
+def Update(newGrid):
     if newGrid is not None:
         pprint.pp(newGrid)
         MineSweeper.MineSweeperSolver.Solve(newGrid)
@@ -121,13 +122,13 @@ if __name__ == "__main__":
     # for the widget to be initialised and do its own process
     # whilst the main thread is carrying out other function.
     #
-    windowThread = th.Thread(target=loadWidget_Thread, daemon=True)
-    windowThread.start()
+    #windowThread = th.Thread(target=loadWidget_Thread, daemon=True)
+    #windowThread.start()
 
     # Loop allowing for continuous program running (Main Thread).
     # Makes sure that all other processes are complete before exiting the program.
 
     while running:
-        Update()
+        Update(Start())
 
     print("Program Exited")

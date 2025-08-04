@@ -35,7 +35,7 @@ class MineSweeperImageProcessing:
 
         ROWS, COLS = 8, 10
         height, width = binary.shape
-        cell_h , cell_w = height // ROWS, width // COLS
+        cell_h , cell_w = 48 , 48
         reader = ocr.Reader(["en"])
 
         result = []
@@ -46,8 +46,8 @@ class MineSweeperImageProcessing:
                 pad_h = int(cell_h * 0.12)
                 pad_w = int(cell_w * 0.2)
 
-                y1, y2 = i * cell_h + pad_h, (i + 1) * cell_h - pad_h
-                x1, x2 = j * cell_w + pad_w, (j + 1) * cell_w - pad_w
+                y1, y2 = i * cell_h, (i + 1) * cell_h
+                x1, x2 = j * cell_w, (j + 1) * cell_w
 
 
                 cell_img = binary[y1:y2, x1:x2]
