@@ -22,7 +22,7 @@ Parameters = {
 }
 class MineSweeperImageProcessing:
     def analyseImg():
-        readpath  = os.path.join("D:\Coding Projects\GamePlayer\GameImages", "GameImg.png")
+        readpath  = os.path.join(".\\GameImages", "GameImg.png")
         img = cv2.imread(readpath)
         grey = cv2.cvtColor(cv2.imread(readpath), cv2.COLOR_BGR2GRAY)
 
@@ -46,8 +46,8 @@ class MineSweeperImageProcessing:
                 pad_h = int(cell_h * 0.12)
                 pad_w = int(cell_w * 0.2)
 
-                y1, y2 = i * cell_h, (i + 1) * cell_h
-                x1, x2 = j * cell_w, (j + 1) * cell_w
+                y1, y2 = i * cell_h + pad_h, (i + 1) * cell_h - pad_h
+                x1, x2 = j * cell_w + pad_w, (j + 1) * cell_w - pad_w
 
 
                 cell_img = binary[y1:y2, x1:x2]
@@ -87,12 +87,12 @@ class DebugTools:
     def DebugSave(image, indexI=None, indexJ=None, fileName=None):
         if fileName != None:
             filename = fileName
-            path = os.path.join("D:\Coding Projects\GamePlayer\GameImages\DebugFolder", filename)
+            path = os.path.join(".\\GameImages\\DebugFolder", filename)
             image.save(path)
 
         else:
             filename = f"{indexI}{indexJ}.png"
-            path = os.path.join("D:\Coding Projects\GamePlayer\GameImages\DebugFolder", filename)
+            path = os.path.join(".\\GameImages\\DebugFolder", filename)
             image.save(path)
 
 

@@ -15,8 +15,8 @@ import pprint
 # Declaring Global Variables.
 running = True
 Parameters = {
-    "TopLeft": (1402, 422),
-    "BottomRight": (1853, 783),
+    "TopLeft": (883, 274),
+    "BottomRight": (1331, 630),
     "Width": 0.0,
     "Height": 0.0,
     "Calculated": False,
@@ -99,7 +99,7 @@ def captureWindow():
         "height": Parameters["Height"]
     }
 
-    path = os.path.join("D:\Coding Projects\GamePlayer\GameImages", "GameImg.png")
+    path = os.path.join(".\\GameImages", "GameImg.png")
     with mss.mss() as sct:
         screenshot = sct.grab(window)
         GameImg = Image.frombytes("RGB", screenshot.size, screenshot.rgb)
@@ -122,8 +122,8 @@ if __name__ == "__main__":
     # for the widget to be initialised and do its own process
     # whilst the main thread is carrying out other function.
     #
-    #windowThread = th.Thread(target=loadWidget_Thread, daemon=True)
-    #windowThread.start()
+    windowThread = th.Thread(target=loadWidget_Thread, daemon=True)
+    windowThread.start()
 
     # Loop allowing for continuous program running (Main Thread).
     # Makes sure that all other processes are complete before exiting the program.
